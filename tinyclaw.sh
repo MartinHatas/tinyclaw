@@ -58,9 +58,29 @@ case "${1:-}" in
     send)
         if [ -z "$2" ]; then
             echo "Usage: $0 send <message>"
+            echo ""
+            echo "Send a message through the queue pipeline with full agent/team routing."
+            echo "Requires the daemon to be running (tinyclaw start)."
+            echo ""
+            echo "Examples:"
+            echo "  $0 send 'hello'                         # default agent"
+            echo "  $0 send '@developer fix the login bug'  # specific agent"
+            echo "  $0 send '@dev build a REST API'         # team routing"
             exit 1
         fi
         send_message "$2" "cli"
+        ;;
+    chat)
+        echo -e "${BLUE}TinyClaw Local Chat${NC}"
+        echo "Type messages to send through the queue. Use @agent or @team to route."
+        echo "Ctrl+C to exit."
+        echo ""
+        while true; do
+            read -r -p "> " user_input
+            [ -z "$user_input" ] && continue
+            send_message "$user_input" "chat"
+            echo ""
+        done
         ;;
     logs)
         logs "$2"
@@ -391,7 +411,7 @@ case "${1:-}" in
         local_names=$(IFS='|'; echo "${ALL_CHANNELS[*]}")
         echo -e "${BLUE}TinyClaw - Claude Code + Messaging Channels${NC}"
         echo ""
-        echo "Usage: $0 {start|stop|restart|status|setup|send|logs|reset <agent_id>|channels|provider|model|agent|team|pairing|update|attach}"
+        echo "Usage: $0 {start|stop|restart|status|setup|send|chat|logs|reset <agent_id>|channels|provider|model|agent|team|pairing|update|attach}"
         echo ""
         echo "Commands:"
         echo "  start                    Start TinyClaw"
@@ -399,7 +419,8 @@ case "${1:-}" in
         echo "  restart                  Restart TinyClaw"
         echo "  status                   Show current status"
         echo "  setup                    Run setup wizard (change channels/provider/model/heartbeat)"
-        echo "  send <msg>               Send message to AI manually"
+        echo "  send <msg>               Send message via queue (supports @agent/@team routing)"
+        echo "  chat                     Interactive chat mode (REPL with queue routing)"
         echo "  logs [type]              View logs ($local_names|heartbeat|daemon|queue|all)"
         echo "  reset <id> [id2 ...]     Reset specific agent conversation(s)"
         echo "  channels reset <channel> Reset channel auth ($local_names)"
@@ -425,8 +446,9 @@ case "${1:-}" in
         echo "  $0 pairing pending"
         echo "  $0 pairing approve ABCD1234"
         echo "  $0 pairing unpair telegram 123456789"
-        echo "  $0 send '@coder fix the bug'"
-        echo "  $0 send '@dev fix the auth bug'"
+        echo "  $0 send '@developer fix the login bug'"
+        echo "  $0 send '@dev build a REST API'"
+        echo "  $0 chat"
         echo "  $0 channels reset whatsapp"
         echo "  $0 logs telegram"
         echo ""

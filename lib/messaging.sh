@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Messaging and logging functions for TinyClaw
 
-# Send message to Claude and get response
+# Send message through the queue pipeline (full agent/team routing)
 send_message() {
     local message="$1"
     local source="${2:-manual}"
 
-    log "[$source] Sending: ${message:0:50}..."
+    log "[$source] Queuing: ${message:0:50}..."
 
     cd "$SCRIPT_DIR"
-    RESPONSE=$(claude --dangerously-skip-permissions -c -p "$message" 2>&1)
+    RESPONSE=$(node "$SCRIPT_DIR/dist/channels/local-client.js" "$message" 2>&1)
 
     echo "$RESPONSE"
 

@@ -1,0 +1,66 @@
+{
+  "workspace": {
+    "path": "/home/tinyclaw/tinyclaw-workspace",
+    "name": "tinyclaw-workspace"
+  },
+  "channels": {
+    "enabled": ["whatsapp"],
+    "discord": {},
+    "telegram": {},
+    "whatsapp": {}
+  },
+  "agents": {
+    "lead": {
+      "name": "Lead",
+      "provider": "anthropic",
+      "model": "opus",
+      "working_directory": "/home/tinyclaw/tinyclaw-workspace/lead"
+    },
+    "architect": {
+      "name": "Architect",
+      "provider": "anthropic",
+      "model": "opus",
+      "working_directory": "/home/tinyclaw/tinyclaw-workspace/architect"
+    },
+    "developer": {
+      "name": "Developer",
+      "provider": "openai",
+      "model": "gpt-5.3-codex",
+      "working_directory": "/home/tinyclaw/tinyclaw-workspace/developer"
+    },
+    "reviewer": {
+      "name": "Reviewer",
+      "provider": "anthropic",
+      "model": "sonnet",
+      "working_directory": "/home/tinyclaw/tinyclaw-workspace/reviewer"
+    },
+    "qa": {
+      "name": "QA Engineer",
+      "provider": "openai",
+      "model": "gpt-5.3-codex",
+      "working_directory": "/home/tinyclaw/tinyclaw-workspace/qa"
+    },
+    "designer": {
+      "name": "UI/UX Designer",
+      "provider": "anthropic",
+      "model": "sonnet",
+      "working_directory": "/home/tinyclaw/tinyclaw-workspace/designer"
+    },
+    "writer": {
+      "name": "Technical Writer",
+      "provider": "anthropic",
+      "model": "sonnet",
+      "working_directory": "/home/tinyclaw/tinyclaw-workspace/writer"
+    }
+  },
+  "teams": {
+    "dev": {
+      "name": "Development Team",
+      "agents": ["lead", "architect", "developer", "reviewer", "qa", "designer", "writer"],
+      "leader_agent": "lead"
+    }
+  },
+  "monitoring": {
+    "heartbeat_interval": 3600
+  }
+}

@@ -5,7 +5,7 @@ node_modules/
 dist/
 
 # TinyClaw runtime files
-.tinyclaw
+/.tinyclaw
 
 .wwebjs_cache
 *.log

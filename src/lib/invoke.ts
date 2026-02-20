@@ -37,10 +37,30 @@ export async function runCommand(command: string, args: string[], cwd?: string):
                 return;
             }
 
-            const errorMessage = stderr.trim() || `Command exited with code ${code}`;
+            const errorMessage = stderr.trim() || stdout.trim() || `Command exited with code ${code}`;
             reject(new Error(errorMessage));
         });
     });
+}
+
+function getConversationMarker(agentDir: string): string {
+    return path.join(agentDir, '.tinyclaw', '_conversation_started');
+}
+
+function hasConversationHistory(agentDir: string): boolean {
+    return fs.existsSync(getConversationMarker(agentDir));
+}
+
+function markConversationStarted(agentDir: string): void {
+    const marker = getConversationMarker(agentDir);
+    if (!fs.existsSync(marker)) {
+        fs.mkdirSync(path.dirname(marker), { recursive: true });
+        fs.writeFileSync(marker, new Date().toISOString());
+    }
+}
+
+function clearConversationMarker(agentDir: string): void {
+    try { fs.unlinkSync(getConversationMarker(agentDir)); } catch {}
 }
 
 /**
@@ -79,15 +99,16 @@ export async function invokeAgent(
     if (provider === 'openai') {
         log('INFO', `Using Codex CLI (agent: ${agentId})`);
 
-        const shouldResume = !shouldReset;
+        const canResume = !shouldReset && hasConversationHistory(agentDir);
 
         if (shouldReset) {
             log('INFO', `🔄 Resetting Codex conversation for agent: ${agentId}`);
+            clearConversationMarker(agentDir);
         }
 
         const modelId = resolveCodexModel(agent.model);
         const codexArgs = ['exec'];
-        if (shouldResume) {
+        if (canResume) {
             codexArgs.push('resume', '--last');
         }
         if (modelId) {
@@ -96,6 +117,7 @@ export async function invokeAgent(
         codexArgs.push('--skip-git-repo-check', '--dangerously-bypass-approvals-and-sandbox', '--json', message);
 
         const codexOutput = await runCommand('codex', codexArgs, workingDir);
+        markConversationStarted(agentDir);
 
         // Parse JSONL output and extract final agent_message
         let response = '';
@@ -120,22 +142,24 @@ export async function invokeAgent(
         const modelId = resolveOpenCodeModel(agent.model);
         log('INFO', `Using OpenCode CLI (agent: ${agentId}, model: ${modelId})`);
 
-        const continueConversation = !shouldReset;
+        const canContinue = !shouldReset && hasConversationHistory(agentDir);
 
         if (shouldReset) {
             log('INFO', `🔄 Resetting OpenCode conversation for agent: ${agentId}`);
+            clearConversationMarker(agentDir);
         }
 
         const opencodeArgs = ['run', '--format', 'json'];
         if (modelId) {
             opencodeArgs.push('--model', modelId);
         }
-        if (continueConversation) {
+        if (canContinue) {
             opencodeArgs.push('-c');
         }
         opencodeArgs.push(message);
 
         const opencodeOutput = await runCommand('opencode', opencodeArgs, workingDir);
+        markConversationStarted(agentDir);
 
         // Parse JSONL output and collect all text parts
         let response = '';
@@ -156,10 +180,11 @@ export async function invokeAgent(
         // Default to Claude (Anthropic)
         log('INFO', `Using Claude provider (agent: ${agentId})`);
 
-        const continueConversation = !shouldReset;
+        const canContinue = !shouldReset && hasConversationHistory(agentDir);
 
         if (shouldReset) {
             log('INFO', `🔄 Resetting conversation for agent: ${agentId}`);
+            clearConversationMarker(agentDir);
         }
 
         const modelId = resolveClaudeModel(agent.model);
@@ -167,11 +192,13 @@ export async function invokeAgent(
         if (modelId) {
             claudeArgs.push('--model', modelId);
         }
-        if (continueConversation) {
+        if (canContinue) {
             claudeArgs.push('-c');
         }
         claudeArgs.push('-p', message);
 
-        return await runCommand('claude', claudeArgs, workingDir);
+        const result = await runCommand('claude', claudeArgs, workingDir);
+        markConversationStarted(agentDir);
+        return result;
     }
 }
