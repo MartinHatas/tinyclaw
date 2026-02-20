@@ -76,22 +76,9 @@ RUN chmod +x bin/tinyclaw tinyclaw.sh \
     && find lib/ scripts/ -name '*.sh' -exec chmod +x {} +
 
 # Create non-root user (Claude Code CLI refuses --dangerously-skip-permissions as root)
-# Pre-create volume directories and seed default settings
+# Pre-create mount point directories (config and workspaces are bind-mounted at runtime)
 RUN useradd -m -s /bin/bash -u 1001 tinyclaw \
     && mkdir -p /home/tinyclaw/.tinyclaw /home/tinyclaw/tinyclaw-workspace
-COPY config/settings.json /home/tinyclaw/.tinyclaw/settings.json
-
-# Copy pre-built agent workspaces with custom SOUL.md and templates
-# This MUST happen BEFORE the VOLUME directive so data seeds the volume on first run
-COPY workspaces/ /tmp/workspaces/
-RUN for agent in lead architect developer reviewer qa designer writer; do \
-        target="/home/tinyclaw/tinyclaw-workspace/$agent"; \
-        mkdir -p "$target/.claude" "$target/.tinyclaw" "$target/.agent"; \
-        cp -a /tmp/workspaces/$agent/. "$target/"; \
-        ln -sf /app/.agents/skills "$target/.claude/skills"; \
-        ln -sf /app/.agents/skills "$target/.agent/skills"; \
-    done \
-    && rm -rf /tmp/workspaces
 
 # Set ownership for all tinyclaw user directories
 RUN chown -R tinyclaw:tinyclaw /app /home/tinyclaw
@@ -104,9 +91,6 @@ ENV TINYCLAW_HOME=/home/tinyclaw/.tinyclaw
 
 # Add tinyclaw CLI to PATH
 ENV PATH="/app/bin:${PATH}"
-
-# Declare volumes for persistent data
-VOLUME ["/home/tinyclaw/.tinyclaw", "/home/tinyclaw/tinyclaw-workspace"]
 
 # Switch to non-root user
 USER tinyclaw
