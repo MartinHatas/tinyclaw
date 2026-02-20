@@ -133,9 +133,20 @@ export const OPENCODE_MODEL_IDS: Record<string, string> = {
 };
 
 export const COPILOT_MODEL_IDS: Record<string, string> = {
-    'claude-sonnet-4-5': 'claude-sonnet-4-5',
+    'claude-opus-4.6': 'claude-opus-4.6',
+    'claude-opus-4.6-fast': 'claude-opus-4.6-fast',
+    'claude-opus-4.5': 'claude-opus-4.5',
+    'claude-sonnet-4.6': 'claude-sonnet-4.6',
+    'claude-sonnet-4.5': 'claude-sonnet-4.5',
+    'claude-haiku-4.5': 'claude-haiku-4.5',
     'claude-sonnet-4': 'claude-sonnet-4',
-    'gpt-5': 'gpt-5',
+    'gpt-5.3-codex': 'gpt-5.3-codex',
+    'gpt-5.2-codex': 'gpt-5.2-codex',
+    'gpt-5.2': 'gpt-5.2',
+    'gpt-5-mini': 'gpt-5-mini',
+    'gpt-4.1': 'gpt-4.1',
+    'gemini-3-pro-preview': 'gemini-3-pro-preview',
     // Shorthand aliases
-    'sonnet': 'claude-sonnet-4-5',
+    'opus': 'claude-opus-4.6',
+    'sonnet': 'claude-sonnet-4.6',
 };
