@@ -10,7 +10,7 @@ The agent management feature enables you to:
 - **Route messages** to specific agents using `@agent_id` syntax
 - **Isolate conversations** - each agent has its own workspace directory and conversation history
 - **Specialize agents** - give each agent a custom system prompt and configuration
-- **Switch providers** - mix Anthropic (Claude) and OpenAI (Codex) agents
+- **Switch providers** - mix Anthropic (Claude), OpenAI (Codex), OpenCode, and GitHub (Copilot) agents
 - **Customize workspaces** - organize agents in your own workspace directory
 
 ## Architecture
@@ -190,6 +190,16 @@ codex exec resume --last \
   "User message here"
 ```
 
+**GitHub (Copilot):**
+```bash
+cd "$agent_working_directory"  # e.g., ~/tinyclaw-workspace/coder/
+copilot -p "User message here" \
+  --allow-all-tools \
+  --model claude-sonnet-4-5 \
+  --continue \
+  --silent
+```
+
 ## Configuration
 
 ### Initial Setup
@@ -247,7 +257,7 @@ Edit `.tinyclaw/settings.json`:
 | Field | Required | Description |
 |-------|----------|-------------|
 | `name` | Yes | Human-readable display name |
-| `provider` | Yes | `anthropic` or `openai` |
+| `provider` | Yes | `anthropic`, `openai`, `opencode`, or `github` |
 | `model` | Yes | Model identifier (e.g., `sonnet`, `opus`, `gpt-5.3-codex`) |
 | `working_directory` | Yes | Directory where agent operates (auto-set to `<workspace>/<agent_id>/`) |
 | `system_prompt` | No | Inline system prompt text |
@@ -400,6 +410,11 @@ Use different AI providers for different tasks:
       "provider": "openai",
       "model": "gpt-5.3-codex",
       "system_prompt": "Code generation specialist."
+    },
+    "copilot": {
+      "provider": "github",
+      "model": "claude-sonnet-4-5",
+      "system_prompt": "GitHub-aware coding assistant."
     }
   }
 }

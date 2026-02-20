@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { AgentConfig, TeamConfig } from './types';
-import { SCRIPT_DIR, resolveClaudeModel, resolveCodexModel, resolveOpenCodeModel } from './config';
+import { SCRIPT_DIR, resolveClaudeModel, resolveCodexModel, resolveOpenCodeModel, resolveCopilotModel } from './config';
 import { log } from './logging';
 import { ensureAgentDirectory, updateAgentTeammates } from './agent-setup';
 
@@ -176,6 +176,31 @@ export async function invokeAgent(
         }
 
         return response || 'Sorry, I could not generate a response from OpenCode.';
+    } else if (provider === 'github') {
+        // GitHub Copilot CLI — non-interactive mode via `copilot -p`.
+        // Outputs raw text (no JSON mode available). Same parsing as Claude.
+        // Supports --continue flag for conversation continuation.
+        const modelId = resolveCopilotModel(agent.model);
+        log('INFO', `Using GitHub Copilot CLI (agent: ${agentId}, model: ${modelId})`);
+
+        const canContinue = !shouldReset && hasConversationHistory(agentDir);
+
+        if (shouldReset) {
+            log('INFO', `Resetting Copilot conversation for agent: ${agentId}`);
+            clearConversationMarker(agentDir);
+        }
+
+        const copilotArgs = ['-p', message, '--allow-all-tools', '--silent'];
+        if (modelId) {
+            copilotArgs.push('--model', modelId);
+        }
+        if (canContinue) {
+            copilotArgs.push('--continue');
+        }
+
+        const result = await runCommand('copilot', copilotArgs, workingDir);
+        markConversationStarted(agentDir);
+        return result;
     } else {
         // Default to Claude (Anthropic)
         log('INFO', `Using Claude provider (agent: ${agentId})`);

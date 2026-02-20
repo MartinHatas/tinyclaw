@@ -1,6 +1,6 @@
 export interface AgentConfig {
     name: string;
-    provider: string;       // 'anthropic', 'openai', or 'opencode'
+    provider: string;       // 'anthropic', 'openai', 'opencode', or 'github'
     model: string;           // e.g. 'sonnet', 'opus', 'gpt-5.3-codex'
     working_directory: string;
 }
@@ -28,7 +28,7 @@ export interface Settings {
         whatsapp?: {};
     };
     models?: {
-        provider?: string; // 'anthropic', 'openai', or 'opencode'
+        provider?: string; // 'anthropic', 'openai', 'opencode', or 'github'
         anthropic?: {
             model?: string;
         };
@@ -36,6 +36,9 @@ export interface Settings {
             model?: string;
         };
         opencode?: {
+            model?: string;
+        };
+        github?: {
             model?: string;
         };
     };
@@ -127,4 +130,12 @@ export const OPENCODE_MODEL_IDS: Record<string, string> = {
     // Shorthand aliases
     'sonnet': 'opencode/claude-sonnet-4-5',
     'opus': 'opencode/claude-opus-4-6',
+};
+
+export const COPILOT_MODEL_IDS: Record<string, string> = {
+    'claude-sonnet-4-5': 'claude-sonnet-4-5',
+    'claude-sonnet-4': 'claude-sonnet-4',
+    'gpt-5': 'gpt-5',
+    // Shorthand aliases
+    'sonnet': 'claude-sonnet-4-5',
 };

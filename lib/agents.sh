@@ -134,10 +134,12 @@ agent_add() {
     echo "  1) Anthropic (Claude)"
     echo "  2) OpenAI (Codex)"
     echo "  3) OpenCode"
-    read -rp "Choose [1-3, default: 1]: " AGENT_PROVIDER_CHOICE
+    echo "  4) GitHub (Copilot)"
+    read -rp "Choose [1-4, default: 1]: " AGENT_PROVIDER_CHOICE
     case "$AGENT_PROVIDER_CHOICE" in
         2) AGENT_PROVIDER="openai" ;;
         3) AGENT_PROVIDER="opencode" ;;
+        4) AGENT_PROVIDER="github" ;;
         *) AGENT_PROVIDER="anthropic" ;;
     esac
 
@@ -174,6 +176,19 @@ agent_add() {
             7) AGENT_MODEL="openai/gpt-5.3-codex" ;;
             8) read -rp "Enter model name (e.g. provider/model): " AGENT_MODEL ;;
             *) AGENT_MODEL="opencode/claude-sonnet-4-5" ;;
+        esac
+    elif [ "$AGENT_PROVIDER" = "github" ]; then
+        echo "Model:"
+        echo "  1) Claude Sonnet 4.5 (default)"
+        echo "  2) Claude Sonnet 4"
+        echo "  3) GPT-5"
+        echo "  4) Custom (enter model name)"
+        read -rp "Choose [1-4, default: 1]: " AGENT_MODEL_CHOICE
+        case "$AGENT_MODEL_CHOICE" in
+            2) AGENT_MODEL="claude-sonnet-4" ;;
+            3) AGENT_MODEL="gpt-5" ;;
+            4) read -rp "Enter model name: " AGENT_MODEL ;;
+            *) AGENT_MODEL="claude-sonnet-4-5" ;;
         esac
     else
         echo "Model:"
@@ -402,15 +417,32 @@ agent_provider() {
                 echo "Use 'tinyclaw agent provider ${agent_id} openai --model {gpt-5.3-codex|gpt-5.2}' to also set the model."
             fi
             ;;
+        github)
+            if [ -n "$model_arg" ]; then
+                jq --arg id "$agent_id" --arg model "$model_arg" \
+                    '.agents[$id].provider = "github" | .agents[$id].model = $model' \
+                    "$SETTINGS_FILE" > "$tmp_file" && mv "$tmp_file" "$SETTINGS_FILE"
+                echo -e "${GREEN}✓ Agent '${agent_id}' switched to GitHub Copilot with model: ${model_arg}${NC}"
+            else
+                jq --arg id "$agent_id" \
+                    '.agents[$id].provider = "github"' \
+                    "$SETTINGS_FILE" > "$tmp_file" && mv "$tmp_file" "$SETTINGS_FILE"
+                echo -e "${GREEN}✓ Agent '${agent_id}' switched to GitHub Copilot${NC}"
+                echo ""
+                echo "Use 'tinyclaw agent provider ${agent_id} github --model {claude-sonnet-4-5|gpt-5}' to also set the model."
+            fi
+            ;;
         *)
-            echo "Usage: tinyclaw agent provider <agent_id> {anthropic|openai} [--model MODEL_NAME]"
+            echo "Usage: tinyclaw agent provider <agent_id> {anthropic|openai|opencode|github} [--model MODEL_NAME]"
             echo ""
             echo "Examples:"
             echo "  tinyclaw agent provider coder                                    # Show current provider/model"
             echo "  tinyclaw agent provider coder anthropic                           # Switch to Anthropic"
             echo "  tinyclaw agent provider coder openai                              # Switch to OpenAI"
+            echo "  tinyclaw agent provider coder github                              # Switch to GitHub Copilot"
             echo "  tinyclaw agent provider coder anthropic --model opus              # Switch to Anthropic Opus"
             echo "  tinyclaw agent provider coder openai --model gpt-5.3-codex        # Switch to OpenAI GPT-5.3 Codex"
+            echo "  tinyclaw agent provider coder github --model claude-sonnet-4-5    # Switch to GitHub Copilot"
             exit 1
             ;;
     esac

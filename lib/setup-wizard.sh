@@ -84,13 +84,15 @@ echo ""
 echo "  1) Anthropic (Claude)  (recommended)"
 echo "  2) OpenAI (Codex/GPT)"
 echo "  3) OpenCode"
+echo "  4) GitHub (Copilot)"
 echo ""
-read -rp "Choose [1-3]: " PROVIDER_CHOICE
+read -rp "Choose [1-4]: " PROVIDER_CHOICE
 
 case "$PROVIDER_CHOICE" in
     1) PROVIDER="anthropic" ;;
     2) PROVIDER="openai" ;;
     3) PROVIDER="opencode" ;;
+    4) PROVIDER="github" ;;
     *)
         echo -e "${RED}Invalid choice${NC}"
         exit 1
@@ -155,6 +157,30 @@ elif [ "$PROVIDER" = "opencode" ]; then
             fi
             ;;
         *) MODEL="opencode/claude-sonnet-4-5" ;;
+    esac
+    echo -e "${GREEN}✓ Model: $MODEL${NC}"
+    echo ""
+elif [ "$PROVIDER" = "github" ]; then
+    echo "Which Copilot model?"
+    echo ""
+    echo "  1) Claude Sonnet 4.5  (default)"
+    echo "  2) Claude Sonnet 4"
+    echo "  3) GPT-5"
+    echo "  4) Custom  (enter model name)"
+    echo ""
+    read -rp "Choose [1-4]: " MODEL_CHOICE
+
+    case "$MODEL_CHOICE" in
+        2) MODEL="claude-sonnet-4" ;;
+        3) MODEL="gpt-5" ;;
+        4)
+            read -rp "Enter model name: " MODEL
+            if [ -z "$MODEL" ]; then
+                echo -e "${RED}Model name required${NC}"
+                exit 1
+            fi
+            ;;
+        *) MODEL="claude-sonnet-4-5" ;;
     esac
     echo -e "${GREEN}✓ Model: $MODEL${NC}"
     echo ""
@@ -270,11 +296,12 @@ if [[ "$SETUP_AGENTS" =~ ^[yY] ]]; then
         read -rp "  Display name: " NEW_AGENT_NAME
         [ -z "$NEW_AGENT_NAME" ] && NEW_AGENT_NAME="$NEW_AGENT_ID"
 
-        echo "  Provider: 1) Anthropic  2) OpenAI  3) OpenCode"
-        read -rp "  Choose [1-3, default: 1]: " NEW_PROVIDER_CHOICE
+        echo "  Provider: 1) Anthropic  2) OpenAI  3) OpenCode  4) GitHub"
+        read -rp "  Choose [1-4, default: 1]: " NEW_PROVIDER_CHOICE
         case "$NEW_PROVIDER_CHOICE" in
             2) NEW_PROVIDER="openai" ;;
             3) NEW_PROVIDER="opencode" ;;
+            4) NEW_PROVIDER="github" ;;
             *) NEW_PROVIDER="anthropic" ;;
         esac
 
@@ -295,6 +322,15 @@ if [[ "$SETUP_AGENTS" =~ ^[yY] ]]; then
                 4) NEW_MODEL="anthropic/claude-sonnet-4-5" ;;
                 5) read -rp "  Enter model name (e.g. provider/model): " NEW_MODEL ;;
                 *) NEW_MODEL="opencode/claude-sonnet-4-5" ;;
+            esac
+        elif [ "$NEW_PROVIDER" = "github" ]; then
+            echo "  Model: 1) Claude Sonnet 4.5  2) Claude Sonnet 4  3) GPT-5  4) Custom"
+            read -rp "  Choose [1-4, default: 1]: " NEW_MODEL_CHOICE
+            case "$NEW_MODEL_CHOICE" in
+                2) NEW_MODEL="claude-sonnet-4" ;;
+                3) NEW_MODEL="gpt-5" ;;
+                4) read -rp "  Enter model name: " NEW_MODEL ;;
+                *) NEW_MODEL="claude-sonnet-4-5" ;;
             esac
         else
             echo "  Model: 1) GPT-5.3 Codex  2) GPT-5.2  3) Custom"
@@ -339,6 +375,8 @@ if [ "$PROVIDER" = "anthropic" ]; then
     MODELS_SECTION='"models": { "provider": "anthropic", "anthropic": { "model": "'"${MODEL}"'" } }'
 elif [ "$PROVIDER" = "opencode" ]; then
     MODELS_SECTION='"models": { "provider": "opencode", "opencode": { "model": "'"${MODEL}"'" } }'
+elif [ "$PROVIDER" = "github" ]; then
+    MODELS_SECTION='"models": { "provider": "github", "github": { "model": "'"${MODEL}"'" } }'
 else
     MODELS_SECTION='"models": { "provider": "openai", "openai": { "model": "'"${MODEL}"'" } }'
 fi

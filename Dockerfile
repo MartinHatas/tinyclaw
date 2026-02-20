@@ -52,8 +52,8 @@ ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/cisco-umbrella-root-ca.
 # Tell Puppeteer to use the system Chromium instead of downloading its own
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Install Claude Code CLI (Anthropic provider) and Codex CLI (OpenAI provider)
-RUN npm install -g @anthropic-ai/claude-code @openai/codex
+# Install Claude Code CLI (Anthropic), Codex CLI (OpenAI), and Copilot CLI (GitHub)
+RUN npm install -g @anthropic-ai/claude-code @openai/codex @github/copilot
 
 WORKDIR /app
 
